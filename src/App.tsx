@@ -237,7 +237,10 @@ export default function App() {
 
   return <main>
     <header className="topbar">
-      <a className="brand" href="#inicio" aria-label="Capacítate Manabí, inicio"><span>CM</span><strong>CAPACÍTATE<br/>MANABÍ</strong></a>
+      <a className="brand" href="#inicio" aria-label="Capacítate Manabí, inicio">
+        <img src="/logo-capacitate-manabi.png" alt="Prefectura de Manabí" />
+        <strong>CAPACÍTATE<br/>MANABÍ</strong>
+      </a>
       {started
         ? <button className="back-course" type="button" onClick={returnToCourse}>← Volver a la información del curso</button>
         : <a className="help" href={whatsappSupportUrl} target="_blank" rel="noreferrer">¿Necesitas ayuda?</a>}
@@ -263,7 +266,10 @@ export default function App() {
         </button>
       </div>
       <div className="hero-panel" aria-label="Resumen de la inscripción">
-        <span className="seal">48H</span>
+        <div className="partners" aria-label="Partners">
+          <span>Partners</span>
+          <img src="/logo-utm.png" alt="Universidad Técnica de Manabí" />
+        </div>
         <p className="learning-note"><strong>Certificación académica</strong><span>Aprende a tu ritmo, desde cualquier lugar.</span></p>
         <button className="start-link" type="button" onClick={startRegistration}><span className="start-label"><small>Da el primer paso</small>Iniciar preinscripción</span><span className="start-arrow" aria-hidden="true">→</span></button>
       </div>
