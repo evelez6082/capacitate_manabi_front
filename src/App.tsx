@@ -1,4 +1,11 @@
 import { FormEvent, useEffect, useMemo, useState } from "react";
+import {
+  getCantones,
+  getParroquias,
+  getProvincias,
+  submitRegistration,
+  type CatalogItem,
+} from "./api";
 
 const steps = ["Datos personales", "Ubicación", "Perfil", "Confirmación"];
 const modules = [
@@ -43,6 +50,25 @@ function Select({ label, name, options, required = false, hint, value, onChange 
   </div>;
 }
 
+function CatalogSelect({ label, name, items, required = false, value, disabled = false, onChange }: {
+  label: string; name: string; items: CatalogItem[]; required?: boolean; value: string | boolean; disabled?: boolean;
+  onChange: (name: string, id: string, nombre: string) => void;
+}) {
+  required = false;
+  return <div className="field">
+    <label htmlFor={name}>{label}{required && <span aria-hidden="true"> *</span>}</label>
+    <select id={name} name={name} required={required} disabled={disabled}
+      value={String(value || "")}
+      onChange={(e) => {
+        const selected = items.find(item => String(item.id) === e.target.value);
+        onChange(name, e.target.value, selected?.nombre ?? "");
+      }}>
+      <option value="">Selecciona una opción</option>
+      {items.map(item => <option key={item.id} value={item.id}>{item.nombre}</option>)}
+    </select>
+  </div>;
+}
+
 function Choice({ legend, name, options, required = false, hint, value, onChange }: {
   legend: string; name: string; options: string[]; required?: boolean; hint?: string;
   value: string | boolean; onChange: (name: string, value: string | boolean) => void;
@@ -67,11 +93,44 @@ export default function App() {
   const [showModules, setShowModules] = useState(false);
   const [notice, setNotice] = useState("");
   const [done, setDone] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [provincias, setProvincias] = useState<CatalogItem[]>([]);
+  const [cantones, setCantones] = useState<CatalogItem[]>([]);
+  const [parroquias, setParroquias] = useState<CatalogItem[]>([]);
 
   useEffect(() => {
     const draft = localStorage.getItem("capacitacion-manabi-borrador");
     if (draft) try { setValues(JSON.parse(draft)); setNotice("Recuperamos tu borrador guardado en este dispositivo."); } catch {}
   }, []);
+
+  useEffect(() => {
+    getProvincias()
+      .then(setProvincias)
+      .catch(error => setNotice(error instanceof Error ? error.message : "No se pudieron cargar las provincias."));
+  }, []);
+
+  useEffect(() => {
+    const provinciaId = Number(values.provincia_id || 0);
+    if (!provinciaId) {
+      setCantones([]);
+      setParroquias([]);
+      return;
+    }
+    getCantones(provinciaId)
+      .then(setCantones)
+      .catch(error => setNotice(error instanceof Error ? error.message : "No se pudieron cargar los cantones."));
+  }, [values.provincia_id]);
+
+  useEffect(() => {
+    const cantonId = Number(values.canton_id || 0);
+    if (!cantonId) {
+      setParroquias([]);
+      return;
+    }
+    getParroquias(cantonId)
+      .then(setParroquias)
+      .catch(error => setNotice(error instanceof Error ? error.message : "No se pudieron cargar las parroquias."));
+  }, [values.canton_id]);
 
   const update = (name: string, value: string | boolean) => setValues(v => ({ ...v, [name]: value }));
   const requiredByStep = useMemo(() => [
@@ -81,7 +140,33 @@ export default function App() {
     ["acepto"],
   ], []);
 
-  const advance = (e: FormEvent) => {
+  const updateGeo = (name: string, id: string, nombre: string) => {
+    if (name === "provincia_id") {
+      setValues(v => ({
+        ...v,
+        provincia_id: id,
+        provincia: nombre,
+        canton_id: "",
+        canton: "",
+        parroquia_id: "",
+        parroquia: "",
+      }));
+      return;
+    }
+    if (name === "canton_id") {
+      setValues(v => ({
+        ...v,
+        canton_id: id,
+        canton: nombre,
+        parroquia_id: "",
+        parroquia: "",
+      }));
+      return;
+    }
+    setValues(v => ({ ...v, [name]: id, parroquia: nombre }));
+  };
+
+  const advance = async (e: FormEvent) => {
     e.preventDefault();
     const missing = requiredByStep[step].find(key => !values[key]);
     if (missing) {
@@ -91,8 +176,17 @@ export default function App() {
       return;
     }
     setNotice("");
-    if (step < 3) { setStep(step + 1); window.scrollTo({ top: 0, behavior: "smooth" }); }
-    else setDone(true);
+    if (step < 3) { setStep(step + 1); window.scrollTo({ top: 0, behavior: "smooth" }); return; }
+    try {
+      setSubmitting(true);
+      await submitRegistration(values);
+      localStorage.removeItem("capacitacion-manabi-borrador");
+      setDone(true);
+    } catch (error) {
+      setNotice(error instanceof Error ? error.message : "No se pudo registrar la inscripción.");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const saveDraft = () => {
@@ -184,9 +278,9 @@ export default function App() {
         </div>}
 
         {step === 1 && <div className="grid">
-          <Select label="Provincia" name="provincia" required options={["Manabí","Azuay","Bolívar","Cañar","Carchi","Chimborazo","Cotopaxi","El Oro","Esmeraldas","Galápagos","Guayas","Imbabura","Loja","Los Ríos","Orellana","Pastaza","Pichincha","Santa Elena","Santo Domingo","Sucumbíos","Tungurahua","Zamora Chinchipe"]} value={values.provincia} onChange={update}/>
-          <Select label="Cantón" name="canton" required options={["Portoviejo","Manta","Chone","Jipijapa","Montecristi","Pedernales","Rocafuerte","Sucre","Otro cantón"]} value={values.canton} onChange={update}/>
-          <Select label="Parroquia" name="parroquia" required options={["Parroquia urbana","Parroquia rural","Otra parroquia"]} value={values.parroquia} onChange={update}/>
+          <CatalogSelect label="Provincia" name="provincia_id" required items={provincias} value={values.provincia_id} onChange={updateGeo}/>
+          <CatalogSelect label="Cantón" name="canton_id" required items={cantones} value={values.canton_id} disabled={!values.provincia_id} onChange={updateGeo}/>
+          <CatalogSelect label="Parroquia" name="parroquia_id" required items={parroquias} value={values.parroquia_id} disabled={!values.canton_id} onChange={updateGeo}/>
           <Field label="Comunidad, barrio o sector" name="barrio" placeholder="Ej. Picoazá" required hint="Nos permite comprender la cobertura territorial del programa." value={values.barrio} onChange={update}/>
         </div>}
 
@@ -216,7 +310,7 @@ export default function App() {
         <div className="actions">
           <button type="button" className="text-btn" onClick={saveDraft}>Guardar borrador</button>
           <div>{step > 0 && <button type="button" className="secondary" onClick={() => setStep(step - 1)}>Atrás</button>}
-          <button className="primary" type="submit">{step === 3 ? "Enviar preinscripción" : "Continuar"} <span aria-hidden="true">→</span></button></div>
+          <button className="primary" type="submit" disabled={submitting}>{submitting ? "Enviando..." : step === 3 ? "Enviar preinscripción" : "Continuar"} <span aria-hidden="true">→</span></button></div>
         </div>
       </form>
     </section>}
