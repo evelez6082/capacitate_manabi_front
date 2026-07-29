@@ -8,6 +8,7 @@ import {
   type CatalogItem,
 } from "./api";
 
+const whatsappSupportUrl = "https://wa.me/593993096923?text=Hola%2C%20necesito%20ayuda%20con%20Capacitate%20Manabi.";
 const steps = ["Datos personales", "Ubicación", "Perfil", "Confirmación"];
 const modules = [
   ["01", "Derechos Humanos", "Origen, principios, garantías y aplicación de los derechos humanos en la vida cotidiana."],
@@ -239,7 +240,7 @@ export default function App() {
       <a className="brand" href="#inicio" aria-label="Capacítate Manabí, inicio"><span>CM</span><strong>CAPACÍTATE<br/>MANABÍ</strong></a>
       {started
         ? <button className="back-course" type="button" onClick={returnToCourse}>← Volver a la información del curso</button>
-        : <a className="help" href="mailto:formacion@manabi.gob.ec">¿Necesitas ayuda?</a>}
+        : <a className="help" href={whatsappSupportUrl} target="_blank" rel="noreferrer">¿Necesitas ayuda?</a>}
     </header>
 
     {!started && <>
@@ -344,7 +345,7 @@ export default function App() {
       </form>
     </section>}
 
-    <footer><div className="footer-program"><strong>CAPACÍTATE MANABÍ</strong><p>Escuela de Formación Ciudadana y Liderazgo Territorial</p></div><a href="mailto:formacion@manabi.gob.ec">Soporte y contacto</a><p className="developer-credit"><span>Desarrollado por</span><strong>Cacicus</strong><i aria-hidden="true"></i><span>2026</span></p></footer>
+    <footer><div className="footer-program"><strong>CAPACÍTATE MANABÍ</strong><p>Escuela de Formación Ciudadana y Liderazgo Territorial</p></div><a href={whatsappSupportUrl} target="_blank" rel="noreferrer">Soporte y contacto</a><p className="developer-credit"><span>Desarrollado por</span><a href="https://cacicustech.com/" target="_blank" rel="noreferrer"><strong>Cacicus</strong></a><i aria-hidden="true"></i><span>2026</span></p></footer>
 
     {done && <div className="modal" role="dialog" aria-modal="true" aria-labelledby="done-title"><div>
       <div className="success-status" aria-hidden="true"><span className="success-check"></span></div>
