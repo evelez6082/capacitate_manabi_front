@@ -347,9 +347,10 @@ export default function App() {
     <footer><div className="footer-program"><strong>CAPACÍTATE MANABÍ</strong><p>Escuela de Formación Ciudadana y Liderazgo Territorial</p></div><a href="mailto:formacion@manabi.gob.ec">Soporte y contacto</a><p className="developer-credit"><span>Desarrollado por</span><strong>Cacicus</strong><i aria-hidden="true"></i><span>2026</span></p></footer>
 
     {done && <div className="modal" role="dialog" aria-modal="true" aria-labelledby="done-title"><div>
-      <span className="success">✓</span><p className="eyebrow">PREINSCRIPCIÓN COMPLETADA</p>
+      <div className="success-status" aria-hidden="true"><span className="success-check"></span></div>
+      <p className="eyebrow">PREINSCRIPCIÓN COMPLETADA</p>
       <h2 id="done-title">¡Gracias por ser parte del cambio!</h2>
-      <p>Esta propuesta de demostración validó correctamente toda la información. En la versión final, aquí se confirmará el envío y llegará una copia al correo registrado.</p>
+      <p>Tu información fue enviada correctamente. Recibirás una copia en el correo registrado.</p>
       <button className="primary" onClick={resetAfterSuccess}>Aceptar</button>
     </div></div>}
   </main>;
