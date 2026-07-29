@@ -47,3 +47,8 @@ export async function getParroquias(cantonId: number): Promise<CatalogItem[]> {
   );
   return data.items;
 }
+
+export async function getNacionalidades(): Promise<CatalogItem[]> {
+  const data = await requestJson<{ items: CatalogItem[] }>(`${API_URL}/api/public/catalogos/nacionalidades`);
+  return data.items;
+}

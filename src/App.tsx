@@ -1,6 +1,7 @@
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import {
   getCantones,
+  getNacionalidades,
   getParroquias,
   getProvincias,
   submitRegistration,
@@ -97,6 +98,7 @@ export default function App() {
   const [provincias, setProvincias] = useState<CatalogItem[]>([]);
   const [cantones, setCantones] = useState<CatalogItem[]>([]);
   const [parroquias, setParroquias] = useState<CatalogItem[]>([]);
+  const [nacionalidades, setNacionalidades] = useState<CatalogItem[]>([]);
 
   useEffect(() => {
     const draft = localStorage.getItem("capacitacion-manabi-borrador");
@@ -107,6 +109,20 @@ export default function App() {
     getProvincias()
       .then(setProvincias)
       .catch(error => setNotice(error instanceof Error ? error.message : "No se pudieron cargar las provincias."));
+  }, []);
+
+  useEffect(() => {
+    getNacionalidades()
+      .then(items => {
+        setNacionalidades(items);
+        setValues(current => {
+          if (current.nacionalidad_id || current.nacionalidad) return current;
+          const ecuador = items.find(item => /ecuador|ecuator/i.test(item.nombre));
+          if (!ecuador) return current;
+          return { ...current, nacionalidad_id: String(ecuador.id), nacionalidad: ecuador.nombre };
+        });
+      })
+      .catch(error => setNotice(error instanceof Error ? error.message : "No se pudieron cargar las nacionalidades."));
   }, []);
 
   useEffect(() => {
@@ -164,6 +180,19 @@ export default function App() {
       return;
     }
     setValues(v => ({ ...v, [name]: id, parroquia: nombre }));
+  };
+
+  const updateNationality = (name: string, id: string, nombre: string) => {
+    setValues(v => ({ ...v, [name]: id, nacionalidad: nombre }));
+  };
+
+  const resetAfterSuccess = () => {
+    setDone(false);
+    setStarted(false);
+    setStep(0);
+    setValues(initialValues);
+    setNotice("");
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const advance = async (e: FormEvent) => {
@@ -291,7 +320,7 @@ export default function App() {
           <div className="grid">
             <Select label="Género" name="genero" required options={["Mujer","Hombre","No binario","Prefiero no decirlo","Otros"]} value={values.genero} onChange={update}/>
             <Select label="Orientación sexual" name="orientacion" required hint="Información sensible usada únicamente con fines estadísticos." options={["Heterosexual","Homosexual","Bisexual","Pansexual","Asexual","Prefiero no decirlo"]} value={values.orientacion} onChange={update}/>
-            <Select label="Nacionalidad" name="nacionalidad" required options={["Ecuatoriana","Colombiana","Peruana","Venezolana","Otra"]} value={values.nacionalidad} onChange={update}/>
+            <CatalogSelect label="Nacionalidad" name="nacionalidad_id" required items={nacionalidades} value={values.nacionalidad_id} onChange={updateNationality}/>
             <Select label="Discapacidad" name="discapacidad" required options={["Sí","No"]} value={values.discapacidad} onChange={update}/>
             {values.discapacidad === "Sí" && <Field label="Tipo de discapacidad" name="tipoDiscapacidad" placeholder="Escribe el tipo de discapacidad" required value={values.tipoDiscapacidad} onChange={update}/>}
             <Select label="Nivel de educación" name="educacion" required options={["Básica","Bachillerato","Tercer nivel","Cuarto nivel","Sin estudios"]} value={values.educacion} onChange={update}/>
@@ -321,7 +350,7 @@ export default function App() {
       <span className="success">✓</span><p className="eyebrow">PREINSCRIPCIÓN COMPLETADA</p>
       <h2 id="done-title">¡Gracias por ser parte del cambio!</h2>
       <p>Esta propuesta de demostración validó correctamente toda la información. En la versión final, aquí se confirmará el envío y llegará una copia al correo registrado.</p>
-      <button className="primary" onClick={() => setDone(false)}>Volver al formulario</button>
+      <button className="primary" onClick={resetAfterSuccess}>Aceptar</button>
     </div></div>}
   </main>;
 }
