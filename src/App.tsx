@@ -238,8 +238,8 @@ export default function App() {
   return <main>
     <header className="topbar">
       <a className="brand" href="#inicio" aria-label="Capacítate Manabí, inicio">
-        <img src="/logo-capacitate-manabi.png" alt="Prefectura de Manabí" />
-        <strong>CAPACÍTATE<br/>MANABÍ</strong>
+        <img className="brand-prefecture" src="/logo-capacitate-manabi.png" alt="Prefectura de Manabí" />
+        <img className="brand-capacitate" src="/logo-capacitate-manabi-wordmark.png" alt="Capacítate Manabí" />
       </a>
       {started
         ? <button className="back-course" type="button" onClick={returnToCourse}>← Volver a la información del curso</button>
