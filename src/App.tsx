@@ -256,7 +256,7 @@ export default function App() {
         <h1>Tu liderazgo puede transformar el territorio.</h1>
         <p className="lead">Preinscríbete en el programa virtual de liderazgo y participación ciudadana de Manabí.</p>
         <div className="facts">
-          <div><span>Inicio</span><strong>Mayo 2026</strong></div>
+          <div><span>Inicio</span><strong>Agosto 2026</strong></div>
           <div><span>Modalidad</span><strong>Virtual asincrónica</strong></div>
           <div><span>Duración</span><strong>48 horas académicas</strong></div>
           <div><span>Aval</span><strong>Universidad Técnica de Manabí</strong></div>
