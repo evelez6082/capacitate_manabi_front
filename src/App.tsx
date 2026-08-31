@@ -68,11 +68,22 @@ const months = [
   ["12", "Diciembre"],
 ];
 
+const phoneCountries = [
+  { code: "593", flag: "🇪🇨", name: "Ecuador" },
+  { code: "57", flag: "🇨🇴", name: "Colombia" },
+  { code: "51", flag: "🇵🇪", name: "Perú" },
+  { code: "1", flag: "🇺🇸", name: "Estados Unidos" },
+  { code: "34", flag: "🇪🇸", name: "España" },
+];
+
 function BirthDateField({ value, onChange }: {
   value: string | boolean; onChange: (name: string, value: string | boolean) => void;
 }) {
   const currentYear = new Date().getFullYear();
-  const [year = "", month = "", day = ""] = String(value || "").split("-");
+  const [initialYear = "", initialMonth = "", initialDay = ""] = String(value || "").split("-");
+  const [day, setDay] = useState(initialDay);
+  const [month, setMonth] = useState(initialMonth);
+  const [year, setYear] = useState(initialYear);
   const years = useMemo(
     () => Array.from({ length: 90 }, (_, index) => String(currentYear - 12 - index)),
     [currentYear],
@@ -82,6 +93,13 @@ function BirthDateField({ value, onChange }: {
     return Array.from({ length: total }, (_, index) => String(index + 1).padStart(2, "0"));
   }, [year, month]);
 
+  useEffect(() => {
+    const [nextYear = "", nextMonth = "", nextDay = ""] = String(value || "").split("-");
+    setYear(nextYear);
+    setMonth(nextMonth);
+    setDay(nextDay);
+  }, [value]);
+
   const updatePart = (part: "day" | "month" | "year", nextValue: string) => {
     const nextYear = part === "year" ? nextValue : year;
     const nextMonth = part === "month" ? nextValue : month;
@@ -90,6 +108,9 @@ function BirthDateField({ value, onChange }: {
       const maxDay = new Date(Number(nextYear), Number(nextMonth), 0).getDate();
       if (Number(nextDay) > maxDay) nextDay = String(maxDay).padStart(2, "0");
     }
+    setYear(nextYear);
+    setMonth(nextMonth);
+    setDay(nextDay);
     onChange("fechaNac", nextYear && nextMonth && nextDay ? `${nextYear}-${nextMonth}-${nextDay}` : "");
   };
 
@@ -108,6 +129,37 @@ function BirthDateField({ value, onChange }: {
         <option value="">Año</option>
         {years.map(item => <option key={item} value={item}>{item}</option>)}
       </select>
+    </div>
+  </div>;
+}
+
+function PhoneField({ value, countryCode, onChange }: {
+  value: string | boolean; countryCode: string | boolean; onChange: (name: string, value: string | boolean) => void;
+}) {
+  const selectedCode = String(countryCode || "593");
+  const rawValue = String(value || "");
+  const localValue = rawValue.startsWith(`+${selectedCode}`)
+    ? rawValue.slice(selectedCode.length + 1)
+    : rawValue.replace(/^\+?593/, "").replace(/^0(?=\d)/, "");
+
+  const updatePhone = (nextCode: string, nextLocal: string) => {
+    const cleaned = nextLocal.replace(/[^\d]/g, "").replace(/^0(?=\d)/, "");
+    onChange("celular_pais", nextCode);
+    onChange("celular", cleaned ? `+${nextCode}${cleaned}` : "");
+  };
+
+  return <div className="field">
+    <label htmlFor="celular">Celular<span aria-hidden="true"> *</span></label>
+    <p id="celular-hint" className="hint">Lo usaremos para notificaciones del curso.</p>
+    <div className="phone-grid">
+      <select value={selectedCode} onChange={(e) => updatePhone(e.target.value, localValue)} aria-label="Código de país">
+        {phoneCountries.map(country => (
+          <option key={country.code} value={country.code}>{country.flag} +{country.code} {country.name}</option>
+        ))}
+      </select>
+      <input id="celular" name="celular" type="tel" inputMode="tel" placeholder="982104735" required
+        aria-describedby="celular-hint" autoComplete="tel-national" value={localValue}
+        onChange={(e) => updatePhone(selectedCode, e.target.value)} />
     </div>
   </div>;
 }
@@ -268,7 +320,8 @@ function PublicApp() {
     e.preventDefault();
     const missing = requiredByStep[step].find(key => !values[key]);
     if (missing) {
-      const el = document.getElementById(missing);
+      const focusId = missing === "fechaNac" ? "fechaNac-dia" : missing;
+      const el = document.getElementById(focusId);
       el?.focus();
       setNotice("Revisa el campo señalado antes de continuar.");
       return;
@@ -378,7 +431,7 @@ function PublicApp() {
           <Field label="Nombres" name="nombres" placeholder="Tus nombres" required value={values.nombres} onChange={update} autoComplete="given-name"/>
           <Field label="Apellidos" name="apellidos" placeholder="Tus apellidos" required value={values.apellidos} onChange={update} autoComplete="family-name"/>
           <Field label="Correo electrónico" name="correo" type="email" placeholder="nombre@correo.com" required value={values.correo} onChange={update} autoComplete="email"/>
-          <Field label="Celular" name="celular" type="tel" placeholder="09XXXXXXXX" required hint="Lo usaremos para notificaciones del curso." value={values.celular} onChange={update} autoComplete="tel"/>
+          <PhoneField value={values.celular} countryCode={values.celular_pais} onChange={update}/>
         </div>}
 
         {step === 1 && <div className="grid">
