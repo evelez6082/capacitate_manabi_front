@@ -53,6 +53,65 @@ function Select({ label, name, options, required = false, hint, value, onChange 
   </div>;
 }
 
+const months = [
+  ["01", "Enero"],
+  ["02", "Febrero"],
+  ["03", "Marzo"],
+  ["04", "Abril"],
+  ["05", "Mayo"],
+  ["06", "Junio"],
+  ["07", "Julio"],
+  ["08", "Agosto"],
+  ["09", "Septiembre"],
+  ["10", "Octubre"],
+  ["11", "Noviembre"],
+  ["12", "Diciembre"],
+];
+
+function BirthDateField({ value, onChange }: {
+  value: string | boolean; onChange: (name: string, value: string | boolean) => void;
+}) {
+  const currentYear = new Date().getFullYear();
+  const [year = "", month = "", day = ""] = String(value || "").split("-");
+  const years = useMemo(
+    () => Array.from({ length: 90 }, (_, index) => String(currentYear - 12 - index)),
+    [currentYear],
+  );
+  const days = useMemo(() => {
+    const total = year && month ? new Date(Number(year), Number(month), 0).getDate() : 31;
+    return Array.from({ length: total }, (_, index) => String(index + 1).padStart(2, "0"));
+  }, [year, month]);
+
+  const updatePart = (part: "day" | "month" | "year", nextValue: string) => {
+    const nextYear = part === "year" ? nextValue : year;
+    const nextMonth = part === "month" ? nextValue : month;
+    let nextDay = part === "day" ? nextValue : day;
+    if (nextYear && nextMonth && nextDay) {
+      const maxDay = new Date(Number(nextYear), Number(nextMonth), 0).getDate();
+      if (Number(nextDay) > maxDay) nextDay = String(maxDay).padStart(2, "0");
+    }
+    onChange("fechaNac", nextYear && nextMonth && nextDay ? `${nextYear}-${nextMonth}-${nextDay}` : "");
+  };
+
+  return <div className="field">
+    <label htmlFor="fechaNac-dia">Fecha de nacimiento<span aria-hidden="true"> *</span></label>
+    <div className="birthdate-grid">
+      <select id="fechaNac-dia" value={day} onChange={(e) => updatePart("day", e.target.value)} required aria-label="Día de nacimiento">
+        <option value="">Día</option>
+        {days.map(item => <option key={item} value={item}>{item}</option>)}
+      </select>
+      <select value={month} onChange={(e) => updatePart("month", e.target.value)} required aria-label="Mes de nacimiento">
+        <option value="">Mes</option>
+        {months.map(([id, label]) => <option key={id} value={id}>{label}</option>)}
+      </select>
+      <select value={year} onChange={(e) => updatePart("year", e.target.value)} required aria-label="Año de nacimiento">
+        <option value="">Año</option>
+        {years.map(item => <option key={item} value={item}>{item}</option>)}
+      </select>
+    </div>
+  </div>;
+}
+
 function CatalogSelect({ label, name, items, required = false, value, disabled = false, onChange }: {
   label: string; name: string; items: CatalogItem[]; required?: boolean; value: string | boolean; disabled?: boolean;
   onChange: (name: string, id: string, nombre: string) => void;
@@ -315,7 +374,7 @@ function PublicApp() {
 
         {step === 0 && <div className="grid">
           <Field label="Número de cédula" name="cedula" placeholder="Ej. 1234567890" required hint="Ingresa los 10 dígitos, sin guiones." value={values.cedula} onChange={update} autoComplete="off"/>
-          <Field label="Fecha de nacimiento" name="fechaNac" type="date" required value={values.fechaNac} onChange={update} autoComplete="bday"/>
+          <BirthDateField value={values.fechaNac} onChange={update}/>
           <Field label="Nombres" name="nombres" placeholder="Tus nombres" required value={values.nombres} onChange={update} autoComplete="given-name"/>
           <Field label="Apellidos" name="apellidos" placeholder="Tus apellidos" required value={values.apellidos} onChange={update} autoComplete="family-name"/>
           <Field label="Correo electrónico" name="correo" type="email" placeholder="nombre@correo.com" required value={values.correo} onChange={update} autoComplete="email"/>
