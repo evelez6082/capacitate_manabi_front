@@ -7,6 +7,7 @@ import {
   submitRegistration,
   type CatalogItem,
 } from "./api";
+import AdminApp from "./AdminApp";
 
 const whatsappSupportUrl = "https://wa.me/593993096923?text=Hola%2C%20necesito%20ayuda%20con%20Capacitate%20Manabi.";
 const steps = ["Datos personales", "Ubicación", "Perfil", "Confirmación"];
@@ -89,6 +90,14 @@ function Choice({ legend, name, options, required = false, hint, value, onChange
 }
 
 export default function App() {
+  if (typeof window !== "undefined" && window.location.pathname.startsWith("/admin")) {
+    return <AdminApp />;
+  }
+
+  return <PublicApp />;
+}
+
+function PublicApp() {
   const [started, setStarted] = useState(false);
   const [step, setStep] = useState(0);
   const [values, setValues] = useState<Values>(initialValues);
@@ -256,7 +265,7 @@ export default function App() {
         <h1>Tu liderazgo puede transformar el territorio.</h1>
         <p className="lead">Preinscríbete en el programa virtual de liderazgo y participación ciudadana de Manabí.</p>
         <div className="facts">
-          <div><span>Inicio</span><strong>Agosto 2026</strong></div>
+          <div><span>Inicio</span><strong>Septiembre 2026</strong></div>
           <div><span>Modalidad</span><strong>Virtual asincrónica</strong></div>
           <div><span>Duración</span><strong>48 horas académicas</strong></div>
           <div><span>Aval</span><strong>Universidad Técnica de Manabí</strong></div>
