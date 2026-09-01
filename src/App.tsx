@@ -417,7 +417,12 @@ function PublicApp() {
         <div className="privacy-note"><span aria-hidden="true">◎</span><p><strong>Tus datos están protegidos</strong><br/>Se usarán únicamente para la gestión y seguimiento del programa formativo.</p></div>
       </aside>
 
-      <form onSubmit={advance} noValidate>
+      <form onSubmit={advance} noValidate aria-busy={submitting}>
+        {submitting && <div className="sending-overlay" role="status" aria-live="polite">
+          <span className="sending-spinner" aria-hidden="true"></span>
+          <strong>Enviando preinscripción</strong>
+          <small>Estamos registrando tus datos. Esto puede tardar unos segundos.</small>
+        </div>}
         <div className="form-head">
           <p>PASO {step + 1} DE 4</p>
           <h2>{steps[step]}</h2>
@@ -467,7 +472,7 @@ function PublicApp() {
         <div className="actions">
           <button type="button" className="text-btn" onClick={saveDraft}>Guardar borrador</button>
           <div>{step > 0 && <button type="button" className="secondary" onClick={() => setStep(step - 1)}>Atrás</button>}
-          <button className="primary" type="submit" disabled={submitting}>{submitting ? "Enviando..." : step === 3 ? "Enviar preinscripción" : "Continuar"} <span aria-hidden="true">→</span></button></div>
+          <button className="primary" type="submit" disabled={submitting}>{submitting && <span className="button-spinner" aria-hidden="true"></span>}{submitting ? "Enviando..." : step === 3 ? "Enviar preinscripción" : "Continuar"} {!submitting && <span aria-hidden="true">→</span>}</button></div>
         </div>
       </form>
     </section>}
